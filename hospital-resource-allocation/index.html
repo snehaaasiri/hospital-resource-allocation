@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MediAlloc — Intelligent Hospital Resource Allocation</title>
+  
+  <!-- Favicons from v0 public assets -->
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-icon.png">
+
+  <!-- Inter Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Lucide Icons via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Chart.js for clinical reporting analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+
+  <!-- Application Styles (v0 MediAlloc Design System) -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Floating Dark Mode Toggle Button (v0 Feature) -->
+  <button class="dark-mode-toggle" id="darkModeToggle" title="Toggle Light / Dark Mode" aria-label="Toggle Dark Mode">
+    <i data-lucide="moon" id="themeIconMoon" style="width: 20px; height: 20px;"></i>
+    <i data-lucide="sun" id="themeIconSun" style="width: 20px; height: 20px; display: none;"></i>
+  </button>
+
+  <!-- Loading Animation Overlay -->
+  <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Running Greedy Allocation Engine...</div>
+  </div>
+
+  <!-- App Container -->
+  <div class="app-container">
+    
+    <!-- Mobile Sidebar Backdrop -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- ==========================================
+         SIDEBAR (v0 Navy Design #10233b)
+         ========================================== -->
+    <aside class="sidebar" id="sidebar">
+      
+      <!-- Brand Header -->
+      <div class="sidebar-header">
+        <div class="brand-wrapper">
+          <div class="brand-icon-box">
+            <i data-lucide="plus" style="width: 24px; height: 24px; stroke-width: 3;"></i>
+            <span class="brand-dot"></span>
+          </div>
+          <div class="brand-text">
+            <h1>MediAlloc</h1>
+            <span>Hospital Resource AI</span>
+          </div>
+        </div>
+        <button class="sidebar-close-btn" id="btnSidebarClose" aria-label="Close Navigation">
+          <i data-lucide="x" style="width: 20px; height: 20px;"></i>
+        </button>
+      </div>
+
+      <!-- Navigation Section Label -->
+      <div class="sidebar-section-title">Workspace</div>
+
+      <!-- Navigation Items (All 8 Application Views) -->
+      <nav class="sidebar-nav">
+        <!-- 1. Dashboard -->
+        <button class="nav-link active" data-view="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span class="nav-text">Dashboard</span>
+        </button>
+
+        <!-- 2. Patients -->
+        <button class="nav-link" data-view="patients">
+          <i data-lucide="users-round"></i>
+          <span class="nav-text">Patients</span>
+          <span class="nav-badge" id="navBadgePatients">0</span>
+        </button>
+
+        <!-- 3. Resources -->
+        <button class="nav-link" data-view="resources">
+          <i data-lucide="package-check"></i>
+          <span class="nav-text">Resources</span>
+        </button>
+
+        <!-- 4. Allocation (Step-by-Step) -->
+        <button class="nav-link" data-view="allocation">
+          <i data-lucide="zap"></i>
+          <span class="nav-text">Allocation</span>
+        </button>
+
+        <!-- 5. Waiting List -->
+        <button class="nav-link" data-view="waiting-list">
+          <i data-lucide="clock-3"></i>
+          <span class="nav-text">Waiting List</span>
+          <span class="nav-badge alert" id="navBadgeWaiting">0</span>
+        </button>
+
+        <!-- 6. Allocation Results -->
+        <button class="nav-link" data-view="results">
+          <i data-lucide="file-bar-chart"></i>
+          <span class="nav-text">Results</span>
+        </button>
+
+        <!-- 7. What-If Simulation -->
+        <button class="nav-link" data-view="simulation">
+          <i data-lucide="activity"></i>
+          <span class="nav-text">What-If Simulation</span>
+        </button>
+
+        <!-- 8. Analytics Reports -->
+        <button class="nav-link" data-view="reports">
+          <i data-lucide="clipboard-list"></i>
+          <span class="nav-text">Reports</span>
+        </button>
+      </nav>
+
+      <!-- System Status Widget (v0 Design) -->
+      <div class="sidebar-status-card">
+        <div class="sidebar-status-header">
+          <span>System status</span>
+          <span class="status-indicator-inline">
+            <span class="status-dot-pulse"></span>
+            Operational
+          </span>
+        </div>
+        <div class="sidebar-status-desc">All hospital services are running normally.</div>
+        <div class="sidebar-status-bar">
+          <div class="sidebar-status-fill"></div>
+        </div>
+      </div>
+
+      <!-- User Footer (Sneha Nair Profile) -->
+      <div class="sidebar-user">
+        <div class="user-avatar-sm">SN</div>
+        <div class="user-info-sm">
+          <div class="user-name-sm">Sneha Nair</div>
+          <div class="user-role-sm">Hospital Administrator</div>
+        </div>
+        <i data-lucide="settings-2" style="width: 16px; height: 16px; color: #7f99b5; cursor: pointer;"></i>
+      </div>
+    </aside>
+
+    <!-- ==========================================
+         MAIN CONTENT WRAPPER
+         ========================================== -->
+    <div class="main-wrapper">
+      
+      <!-- Top Application Header (Sticky with Watermark) -->
+      <header class="top-header">
+        <div class="header-watermark">MEDIALLOC</div>
+        
+        <div class="header-content">
+          <div class="header-left">
+            <button class="mobile-menu-btn" id="btnMenuToggle" aria-label="Toggle Navigation">
+              <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+            </button>
+            <div>
+              <p class="header-date-badge">
+                <span id="headerLiveDate">Thursday, October 2, 2026</span>
+                <span>•</span>
+                <span id="headerLiveTime">09:14 AM</span>
+              </p>
+              <h1 class="header-greeting">Good Morning, Sneha <span style="color: #f59e0b;">☀</span></h1>
+              <p class="header-subtitle">Here's what's happening at your hospital today.</p>
+            </div>
+          </div>
+
+          <div class="header-right">
+            <!-- Search bar -->
+            <div class="header-search">
+              <i data-lucide="search"></i>
+              <input type="text" id="globalSearchInput" placeholder="Search patients, resources, or reports...">
+            </div>
+
+            <!-- Status Pill -->
+            <div class="header-status-pill">
+              <span class="status-dot-green"></span>
+              <span>System Operational</span>
+            </div>
+
+            <!-- Reset Demo Data Action Button -->
+            <button class="btn-v0-secondary" id="btnResetData" title="Reset to sample demo data">
+              <i data-lucide="rotate-ccw" style="width: 14px; height: 14px;"></i>
+              Reset Data
+            </button>
+
+            <!-- Notifications Bell -->
+            <button class="btn-notification" aria-label="Notifications" title="Notifications">
+              <i data-lucide="bell" style="width: 18px; height: 18px;"></i>
+              <span class="bell-badge"></span>
+            </button>
+
+            <!-- User Avatar & Profile -->
+            <div class="header-user-badge">
+              <div class="user-avatar-md">SN</div>
+              <div class="user-text-md" style="display: none; @media(min-width: 1200px){ display: block; }">
+                <div class="name">Sneha Nair</div>
+                <div class="role">Hospital Administrator</div>
+              </div>
+            </div>
+
+            <!-- Main Primary Action: Run Greedy Allocation -->
+            <button class="btn-v0-primary" id="btnSidebarAllocate">
+              <i data-lucide="play" style="fill: currentColor;"></i>
+              <span id="topBtnAllocateText">Run Greedy Allocation</span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main Content Area with 8 Pages -->
+      <main class="content-body">
+
+        <!-- ==========================================
+             PAGE 1: DASHBOARD (v0 Exact Layout)
+             ========================================== -->
+        <section class="page-view active" id="view-dashboard">
+          
+          <!-- Dashboard Page Header -->
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon">
+                  <i data-lucide="layout-dashboard" style="width: 14px; height: 14px;"></i>
+                </span>
+                Operations overview
+              </div>
+              <h2 class="page-title">Hospital Dashboard</h2>
+              <p class="page-subtitle">Real-time resource allocation overview for your facility.</p>
+            </div>
+            
+            <div class="header-live-badge">
+              <i data-lucide="calendar-days" style="width: 16px; height: 16px;"></i>
+              <span>Live data · refreshed just now</span>
+              <button class="btn-v0-secondary" id="btnDashboardAddPatient" style="margin-left: 12px; height: 32px; padding: 0 12px;">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                Add Patient
+              </button>
+            </div>
+          </div>
+
+          <!-- 8 KPI Cards Grid (Exact v0 Spec) -->
+          <section class="kpis-grid" aria-label="Hospital key performance indicators">
+            
+            <!-- 1. Total Patients -->
+            <div class="kpi-card kpi-tone-blue">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="users"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardTotalPatients">8</div>
+              <div class="kpi-label">Total Patients</div>
+              <div class="kpi-note">in active queue</div>
+            </div>
+
+            <!-- 2. Critical Patients -->
+            <div class="kpi-card kpi-tone-red">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="alert-triangle"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardCriticalPatients" style="color: var(--critical-red);">3</div>
+              <div class="kpi-label">Critical Patients</div>
+              <div class="kpi-note">require immediate care</div>
+            </div>
+
+            <!-- 3. Patients Allocated -->
+            <div class="kpi-card kpi-tone-cyan">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="user-check"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardAllocatedPatients">2/8</div>
+              <div class="kpi-label">Patients Allocated</div>
+              <div class="kpi-note" id="cardAllocatedNote">25% of current queue</div>
+            </div>
+
+            <!-- 4. Patients Waiting -->
+            <div class="kpi-card kpi-tone-amber">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="clock-3"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardWaitingPatients" style="color: var(--urgent-amber);">6</div>
+              <div class="kpi-label">Patients Waiting</div>
+              <div class="kpi-note">awaiting resources</div>
+            </div>
+
+            <!-- 5. Available Beds -->
+            <div class="kpi-card kpi-tone-green">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="bed"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardAvailableBeds">2/4</div>
+              <div class="kpi-label">Available Beds</div>
+              <div class="kpi-note" id="cardBedsBreakdown">50% capacity available</div>
+            </div>
+
+            <!-- 6. Available Doctors -->
+            <div class="kpi-card kpi-tone-blue">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="stethoscope"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardAvailableDoctors">1/3</div>
+              <div class="kpi-label">Available Doctors</div>
+              <div class="kpi-note" id="cardDoctorsBreakdown">on shift now</div>
+            </div>
+
+            <!-- 7. Available Equipment -->
+            <div class="kpi-card kpi-tone-cyan">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="cpu"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardAvailableEquipment">1/3</div>
+              <div class="kpi-label">Available Equipment</div>
+              <div class="kpi-note" id="cardEquipmentBreakdown">ready for assignment</div>
+            </div>
+
+            <!-- 8. Allocation Efficiency -->
+            <div class="kpi-card kpi-tone-green">
+              <div class="kpi-card-header">
+                <span class="kpi-icon-box"><i data-lucide="shield-check"></i></span>
+                <i data-lucide="chevron-down" class="kpi-chevron"></i>
+              </div>
+              <div class="kpi-value" id="cardEfficiency" style="color: var(--allocated-green);">87%</div>
+              <div class="kpi-label">Allocation Efficiency</div>
+              <div class="kpi-note">+4.8% this week</div>
+            </div>
+          </section>
+
+          <!-- Analytics 3-Column Section -->
+          <section class="analytics-grid" aria-label="Dashboard analytics">
+            
+            <!-- Card 1: Patient Emergency Overview (Interactive Donut Chart) -->
+            <div class="v0-card">
+              <div class="v0-card-header">
+                <div>
+                  <h3 class="v0-card-title">Patient Emergency Overview</h3>
+                  <p class="v0-card-subtitle">Current patient distribution by priority</p>
+                </div>
+                <i data-lucide="more-horizontal" style="color: var(--text-subtle); cursor: pointer;"></i>
+              </div>
+
+              <!-- Donut Chart & Legend -->
+              <div class="donut-chart-wrapper">
+                <div class="donut-svg-container">
+                  <svg viewBox="0 0 42 42" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#eef3f8" stroke-width="6" />
+                    <!-- Dynamic segments filled by JS -->
+                    <circle id="donutSegCritical" cx="21" cy="21" r="15.9" fill="none" stroke="#ef6262" stroke-width="6" pathLength="100" stroke-dasharray="37.5 62.5" stroke-dashoffset="0" style="transition: stroke-dasharray 0.5s ease;" />
+                    <circle id="donutSegUrgent" cx="21" cy="21" r="15.9" fill="none" stroke="#f4b740" stroke-width="6" pathLength="100" stroke-dasharray="25 75" stroke-dashoffset="-37.5" style="transition: stroke-dasharray 0.5s ease;" />
+                    <circle id="donutSegStandard" cx="21" cy="21" r="15.9" fill="none" stroke="#38bdf8" stroke-width="6" pathLength="100" stroke-dasharray="37.5 62.5" stroke-dashoffset="-62.5" style="transition: stroke-dasharray 0.5s ease;" />
+                  </svg>
+                  <div class="donut-center-label">
+                    <span class="donut-center-number" id="donutTotalCount">8</span>
+                    <span class="donut-center-text">Patients</span>
+                  </div>
+                </div>
+
+                <div class="donut-legend-list">
+                  <button class="donut-legend-item active" data-donut-level="Critical">
+                    <span class="legend-dot" style="background-color: #ef6262;"></span>
+                    <span class="legend-name">Critical</span>
+                    <span class="legend-count" id="donutCountCritical">3</span>
+                  </button>
+                  <button class="donut-legend-item" data-donut-level="Serious">
+                    <span class="legend-dot" style="background-color: #f4b740;"></span>
+                    <span class="legend-name">Urgent</span>
+                    <span class="legend-count" id="donutCountUrgent">2</span>
+                  </button>
+                  <button class="donut-legend-item" data-donut-level="Moderate">
+                    <span class="legend-dot" style="background-color: #eab308;"></span>
+                    <span class="legend-name">Moderate</span>
+                    <span class="legend-count" id="donutCountModerate">1</span>
+                  </button>
+                  <button class="donut-legend-item" data-donut-level="Normal">
+                    <span class="legend-dot" style="background-color: #38bdf8;"></span>
+                    <span class="legend-name">Standard</span>
+                    <span class="legend-count" id="donutCountStandard">2</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Immediate Attention Alert Banner -->
+              <div class="emergency-alert-pill">
+                <div class="emergency-alert-left">
+                  <span class="alert-badge-red">
+                    <i data-lucide="alert-triangle"></i>
+                  </span>
+                  <span class="emergency-alert-text">Immediate attention required</span>
+                </div>
+                <span class="emergency-alert-val" id="alertCriticalPatientsCount">3 patients</span>
+              </div>
+            </div>
+
+            <!-- Card 2: Resource Utilization (Dual Bar & Statistics) -->
+            <div class="v0-card">
+              <div class="v0-card-header">
+                <div>
+                  <h3 class="v0-card-title">Resource Utilization</h3>
+                  <p class="v0-card-subtitle">Usage across beds and clinical staff</p>
+                </div>
+                <i data-lucide="more-horizontal" style="color: var(--text-subtle); cursor: pointer;"></i>
+              </div>
+
+              <!-- Legend and Period Selector -->
+              <div class="utilization-top-bar">
+                <div class="utilization-legend">
+                  <span class="utilization-legend-item">
+                    <span class="utilization-dot-bed"></span> Beds
+                  </span>
+                  <span class="utilization-legend-item">
+                    <span class="utilization-dot-doc"></span> Doctors
+                  </span>
+                </div>
+                <select class="utilization-select" id="selectUtilPeriod">
+                  <option>Today</option>
+                  <option>This week</option>
+                  <option>This month</option>
+                </select>
+              </div>
+
+              <!-- Dual-Bar Chart Graphic (Interactive) -->
+              <div class="utilization-chart-bars" id="utilizationBarsContainer">
+                <div class="bar-column-group" title="06 AM: 68% Beds, 55% Docs"><div class="bar-pill-bed" style="height: 68%;"></div><div class="bar-pill-doc" style="height: 55%;"></div></div>
+                <div class="bar-column-group" title="07 AM: 55% Beds, 42% Docs"><div class="bar-pill-bed" style="height: 55%;"></div><div class="bar-pill-doc" style="height: 42%;"></div></div>
+                <div class="bar-column-group" title="08 AM: 76% Beds, 63% Docs"><div class="bar-pill-bed" style="height: 76%;"></div><div class="bar-pill-doc" style="height: 63%;"></div></div>
+                <div class="bar-column-group" title="09 AM: 48% Beds, 35% Docs"><div class="bar-pill-bed" style="height: 48%;"></div><div class="bar-pill-doc" style="height: 35%;"></div></div>
+                <div class="bar-column-group" title="10 AM: 84% Beds, 71% Docs"><div class="bar-pill-bed" style="height: 84%;"></div><div class="bar-pill-doc" style="height: 71%;"></div></div>
+                <div class="bar-column-group" title="11 AM: 63% Beds, 50% Docs"><div class="bar-pill-bed" style="height: 63%;"></div><div class="bar-pill-doc" style="height: 50%;"></div></div>
+                <div class="bar-column-group" title="12 PM: 72% Beds, 59% Docs"><div class="bar-pill-bed" style="height: 72%;"></div><div class="bar-pill-doc" style="height: 59%;"></div></div>
+                <div class="bar-column-group" title="01 PM: 59% Beds, 46% Docs"><div class="bar-pill-bed" style="height: 59%;"></div><div class="bar-pill-doc" style="height: 46%;"></div></div>
+                <div class="bar-column-group" title="02 PM: 87% Beds, 74% Docs"><div class="bar-pill-bed" style="height: 87%;"></div><div class="bar-pill-doc" style="height: 74%;"></div></div>
+                <div class="bar-column-group" title="03 PM: 66% Beds, 53% Docs"><div class="bar-pill-bed" style="height: 66%;"></div><div class="bar-pill-doc" style="height: 53%;"></div></div>
+                <div class="bar-column-group" title="04 PM: 78% Beds, 65% Docs"><div class="bar-pill-bed" style="height: 78%;"></div><div class="bar-pill-doc" style="height: 65%;"></div></div>
+                <div class="bar-column-group" title="05 PM: 71% Beds, 58% Docs"><div class="bar-pill-bed" style="height: 71%;"></div><div class="bar-pill-doc" style="height: 58%;"></div></div>
+              </div>
+              <div class="utilization-time-labels">
+                <span>06 AM</span>
+                <span>09 AM</span>
+                <span>12 PM</span>
+                <span>03 PM</span>
+                <span>06 PM</span>
+              </div>
+
+              <!-- Summary Metrics Row -->
+              <div class="utilization-metrics-row">
+                <div>
+                  <div class="u-metric-lbl">Avg. utilization</div>
+                  <div class="u-metric-val" id="utilAvgVal">68.4%</div>
+                </div>
+                <div>
+                  <div class="u-metric-lbl">Peak hour</div>
+                  <div class="u-metric-val">10 AM</div>
+                </div>
+                <div>
+                  <div class="u-metric-lbl">Efficiency</div>
+                  <div class="u-metric-val green" id="utilEffVal">87% ↑</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: What-If Simulation Quick Panel -->
+            <div class="v0-card">
+              <div class="v0-card-header">
+                <div>
+                  <h3 class="v0-card-title">What-If Simulation</h3>
+                  <p class="v0-card-subtitle">Plan for better outcomes</p>
+                </div>
+                <i data-lucide="more-horizontal" style="color: var(--text-subtle);"></i>
+              </div>
+
+              <div class="sim-quick-grid">
+                <div>
+                  <span class="sim-quick-label">Available Beds</span>
+                  <div class="sim-quick-select" id="quickSimBeds">
+                    <span id="quickSimBedsVal">2</span>
+                    <span style="color: var(--primary); cursor: pointer;" id="btnQuickAdjustBeds">−  +</span>
+                  </div>
+                </div>
+                <div>
+                  <span class="sim-quick-label">Doctors</span>
+                  <div class="sim-quick-select">
+                    <span id="quickSimDocsVal">1</span>
+                    <span style="color: var(--primary); cursor: pointer;" id="btnQuickAdjustDocs">−  +</span>
+                  </div>
+                </div>
+                <div>
+                  <span class="sim-quick-label">Equipment</span>
+                  <div class="sim-quick-select">
+                    <span id="quickSimEqVal">1</span>
+                    <span style="color: var(--primary); cursor: pointer;" id="btnQuickAdjustEq">−  +</span>
+                  </div>
+                </div>
+                <div>
+                  <span class="sim-quick-label">Patient Priority</span>
+                  <div class="sim-quick-select">
+                    <span>All</span>
+                    <span style="color: var(--primary);">⌄</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn-v0-primary" id="btnQuickRunSim" style="width: 100%; justify-content: center; height: 36px; border-radius: 8px;">
+                Run Simulation
+              </button>
+
+              <div class="sim-results-table">
+                <div style="font-size: 12px; font-weight: 700; color: var(--text-heading); margin-bottom: 8px;">Projected Results</div>
+                <div class="sim-result-row">
+                  <span class="lbl">Allocation Rate</span>
+                  <span class="val" style="color: var(--allocated-green);" id="simProjAllocRate">75%</span>
+                </div>
+                <div class="sim-result-row">
+                  <span class="lbl">Waiting Patients</span>
+                  <span class="val" style="color: var(--urgent-amber);" id="simProjWaitingCount">2</span>
+                </div>
+                <div class="sim-result-row">
+                  <span class="lbl">Resource Utilization</span>
+                  <span class="val" style="color: var(--primary);" id="simProjUtil">68%</span>
+                </div>
+                <div class="sim-result-row">
+                  <span class="lbl">Efficiency</span>
+                  <span class="val" style="color: var(--allocated-green);" id="simProjEff">89%</span>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- Bottom Section: Recent Activity Table & Resource Status -->
+          <section class="bottom-grid" aria-label="Hospital activity and resource status">
+            
+            <!-- Activity Table Card -->
+            <div class="v0-card" style="padding-bottom: 0;">
+              <div class="v0-card-header" style="margin-bottom: 8px;">
+                <div>
+                  <h3 class="v0-card-title">Recent Allocation Activity</h3>
+                  <p class="v0-card-subtitle">Latest patient-resource assignments</p>
+                </div>
+                <button class="btn-v0-secondary" id="btnToggleAllActivity" style="height: 32px; font-size: 11px;">
+                  <span id="toggleActivityText">View all</span>
+                  <i data-lucide="chevron-down" id="toggleActivityChevron" style="width: 14px; height: 14px;"></i>
+                </button>
+              </div>
+
+              <div class="v0-table-container">
+                <table class="v0-table">
+                  <thead>
+                    <tr>
+                      <th>Patient</th>
+                      <th>Department / Bed</th>
+                      <th>Priority</th>
+                      <th>Time</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboardPatientTableBody">
+                    <!-- Populated dynamically by app.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Resource Status Card -->
+            <div class="v0-card">
+              <div class="v0-card-header">
+                <div>
+                  <h3 class="v0-card-title">Resource Status</h3>
+                  <p class="v0-card-subtitle">Availability across departments</p>
+                </div>
+                <button class="btn-v0-secondary" id="btnManageResourcesQuick" style="height: 32px; font-size: 11px;">
+                  Manage <i data-lucide="settings-2" style="width: 14px; height: 14px; margin-left: 4px;"></i>
+                </button>
+              </div>
+
+              <!-- Department Progress Bars -->
+              <div>
+                <!-- ICU Beds -->
+                <div class="resource-progress-item">
+                  <div class="res-prog-header">
+                    <span class="res-prog-icon blue"><i data-lucide="bed"></i></span>
+                    <div class="res-prog-info">
+                      <div class="res-prog-row">
+                        <span>ICU Beds</span>
+                        <span id="valResICUBeds">50%</span>
+                      </div>
+                      <div class="res-prog-sub" id="subResICUBeds">2 of 4 available</div>
+                    </div>
+                  </div>
+                  <div class="res-prog-track">
+                    <div class="res-prog-fill blue" id="barResICUBeds" style="width: 50%;"></div>
+                  </div>
+                </div>
+
+                <!-- Specialist Doctors -->
+                <div class="resource-progress-item">
+                  <div class="res-prog-header">
+                    <span class="res-prog-icon cyan"><i data-lucide="stethoscope"></i></span>
+                    <div class="res-prog-info">
+                      <div class="res-prog-row">
+                        <span>Specialist Doctors</span>
+                        <span id="valResDoctors">33%</span>
+                      </div>
+                      <div class="res-prog-sub" id="subResDoctors">1 of 3 available</div>
+                    </div>
+                  </div>
+                  <div class="res-prog-track">
+                    <div class="res-prog-fill cyan" id="barResDoctors" style="width: 33%;"></div>
+                  </div>
+                </div>
+
+                <!-- Ventilators -->
+                <div class="resource-progress-item">
+                  <div class="res-prog-header">
+                    <span class="res-prog-icon amber"><i data-lucide="heart-pulse"></i></span>
+                    <div class="res-prog-info">
+                      <div class="res-prog-row">
+                        <span>Ventilators</span>
+                        <span id="valResVentilators">33%</span>
+                      </div>
+                      <div class="res-prog-sub" id="subResVentilators">1 of 3 available</div>
+                    </div>
+                  </div>
+                  <div class="res-prog-track">
+                    <div class="res-prog-fill amber" id="barResVentilators" style="width: 33%;"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dashed Review Capacity Box -->
+              <div class="v0-dashed-card" id="cardDashedReview">
+                <div class="dashed-icon-box">
+                  <i data-lucide="plus" style="width: 16px; height: 16px;"></i>
+                </div>
+                <div class="dashed-text">
+                  <div class="title">Need more capacity?</div>
+                  <div class="sub">Review resource projections</div>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- Hidden fallback canvases for ChartManager compatibility -->
+          <div style="display: none;">
+            <canvas id="chartPatientPriority"></canvas>
+            <canvas id="chartResourceUsage"></canvas>
+            <span id="cardAllocatedResources">0</span>
+          </div>
+
+        </section>
+
+        <!-- ==========================================
+             PAGE 2: PATIENTS PAGE (Add & View Patients)
+             ========================================== -->
+        <section class="page-view" id="view-patients">
+          
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon"><i data-lucide="users-round" style="width: 14px; height: 14px;"></i></span>
+                Registry & Admissions
+              </div>
+              <h2 class="page-title">Patient Admissions</h2>
+              <p class="page-subtitle">Admit new patients with clinical needs and track priority ranking</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-v0-secondary" id="btnLoad8Patients" title="Reset and populate 35 clinical patients with triage scores">
+                ⚡ Reset & Load 35 Patient Cohort
+              </button>
+              <button class="btn-v0-primary" id="btnOpenAddPatientModal">
+                <i data-lucide="plus"></i>
+                Admit Patient
+              </button>
+            </div>
+          </div>
+
+          <!-- Patients Table Panel -->
+          <div class="data-panel">
+            <div class="data-panel-header">
+              <h4>All Registered Patients</h4>
+              <div class="data-panel-filters">
+                <input type="text" id="patientSearchInput" class="form-select" placeholder="🔍 Search patient name, ID, triage..." style="min-width: 240px; font-size: 13px;">
+                <select class="form-select" id="patientFilterLevel">
+                  <option value="ALL">All Emergency Levels</option>
+                  <option value="Critical">Critical (Priority 4)</option>
+                  <option value="Serious">Serious (Priority 3)</option>
+                  <option value="Moderate">Moderate (Priority 2)</option>
+                  <option value="Normal">Normal (Priority 1)</option>
+                </select>
+                <select class="form-select" id="patientFilterStatus">
+                  <option value="ALL">All Statuses</option>
+                  <option value="Allocated">Allocated</option>
+                  <option value="Waiting">Waiting</option>
+                  <option value="Treated">Treated</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient ID</th>
+                    <th>Name & Age</th>
+                    <th>Emergency Level</th>
+                    <th>Priority Score</th>
+                    <th>Arrival Time</th>
+                    <th>Required Resources</th>
+                    <th>Status</th>
+                    <th>Clinical Notes / Bottleneck</th>
+                    <th style="text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="patientsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==========================================
+             PAGE 3: RESOURCES PAGE (Beds, Doctors, Equipment)
+             ========================================== -->
+        <section class="page-view" id="view-resources">
+          
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon"><i data-lucide="package-check" style="width: 14px; height: 14px;"></i></span>
+                Capacity Management
+              </div>
+              <h2 class="page-title">Hospital Resources</h2>
+              <p class="page-subtitle">Track availability, active clinical assignments, and manage offline equipment</p>
+            </div>
+            <button class="btn-v0-primary" id="btnOpenAddResourceModal">
+              <i data-lucide="plus"></i>
+              Add Resource
+            </button>
+          </div>
+
+          <!-- Resource Category Navigation Tabs -->
+          <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+            <button class="btn-v0-secondary tab-btn active" data-resource-tab="beds" style="background: var(--primary); color: white;">
+              🛏️ Hospital Beds (<span id="tabCountBeds">0</span>)
+            </button>
+            <button class="btn-v0-secondary tab-btn" data-resource-tab="doctors">
+              👨‍⚕️ Specialized Doctors (<span id="tabCountDoctors">0</span>)
+            </button>
+            <button class="btn-v0-secondary tab-btn" data-resource-tab="equipment">
+              ⚡ Medical Equipment (<span id="tabCountEquipment">0</span>)
+            </button>
+          </div>
+
+          <!-- Tab Content 1: Beds -->
+          <div class="resource-tab-content active" id="tabContentBeds">
+            <div class="data-panel" style="margin-top: 0;">
+              <h4>Hospital Beds Inventory</h4>
+              <div style="overflow-x: auto; margin-top: 12px;">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Bed ID</th><th>Name / Ward</th><th>Type</th><th>Status</th><th>Assigned Patient</th><th>Actions</th></tr>
+                  </thead>
+                  <tbody id="bedsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Content 2: Doctors -->
+          <div class="resource-tab-content" id="tabContentDoctors" style="display: none;">
+            <div class="data-panel" style="margin-top: 0;">
+              <h4>Specialized Doctors On Duty</h4>
+              <div style="overflow-x: auto; margin-top: 12px;">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Doctor ID</th><th>Doctor Name</th><th>Specialization</th><th>Status</th><th>Current Patient</th><th>Actions</th></tr>
+                  </thead>
+                  <tbody id="doctorsTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab Content 3: Equipment -->
+          <div class="resource-tab-content" id="tabContentEquipment" style="display: none;">
+            <div class="data-panel" style="margin-top: 0;">
+              <h4>Medical Equipment Inventory</h4>
+              <div style="overflow-x: auto; margin-top: 12px;">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Equipment ID</th><th>Equipment Name</th><th>Device Type</th><th>Status</th><th>Assigned Patient</th><th>Actions</th></tr>
+                  </thead>
+                  <tbody id="equipmentTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==========================================
+             PAGE 4: ALLOCATION ENGINE (Step-by-step Greedy)
+             ========================================== -->
+        <section class="page-view" id="view-allocation">
+          
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon"><i data-lucide="zap" style="width: 14px; height: 14px;"></i></span>
+                Algorithmic Engine
+              </div>
+              <h2 class="page-title">Greedy Allocation Engine</h2>
+              <p class="page-subtitle">Priority-sorted atomic resource matching with comprehensive decision logs</p>
+            </div>
+            <button class="btn-v0-primary" id="btnRunGreedyAllocation">
+              <i data-lucide="play" style="fill: currentColor;"></i>
+              Execute Allocation
+            </button>
+          </div>
+
+          <!-- Explanation Card -->
+          <div class="v0-card" style="margin-bottom: 20px;">
+            <h3 class="v0-card-title">How the Greedy Algorithm Operates</h3>
+            <p class="v0-card-subtitle" style="margin-top: 6px; line-height: 1.6;">
+              1. <strong>Sort Queue:</strong> Patients are strictly ordered by Emergency Priority (Critical 4 &gt; Serious 3 &gt; Moderate 2 &gt; Normal 1). Earliest arrival timestamp is the FIFO tie-breaker.<br>
+              2. <strong>Atomic Matching:</strong> Simultaneously checks if an available matching Bed Type, Doctor Specialization, and Medical Equipment exist.<br>
+              3. <strong>Decision:</strong> If all 3 match, resources are locked atomically. If any resource is unavailable, the patient transitions to the Waiting List with an explicit clinical bottleneck explanation.
+            </p>
+          </div>
+
+          <!-- Step By Step Decision Log -->
+          <div class="data-panel">
+            <h4>Algorithm Step-by-Step Execution Log</h4>
+            <div id="allocationStepList" style="margin-top: 14px; display: flex; flex-direction: column; gap: 10px;">
+              <p style="color: var(--text-muted); font-size: 13px;">No allocation run has occurred yet. Click "Execute Allocation" above to begin.</p>
+            </div>
+          </div>
+
+          <div class="data-panel">
+            <h4>Live Queue After Allocation</h4>
+            <div style="overflow-x: auto; margin-top: 12px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th># Rank</th>
+                    <th>Patient</th>
+                    <th>Priority & Score</th>
+                    <th>Arrival Time</th>
+                    <th>Required Needs</th>
+                    <th>Status</th>
+                    <th>Reason / Bottleneck</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="allocationTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==========================================
+             PAGE 5: WAITING LIST (Bottlenecks & Reasons)
+             ========================================== -->
+        <section class="page-view" id="view-waiting-list">
+          
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon" style="background: var(--amber-bg); color: var(--urgent-amber);"><i data-lucide="clock-3" style="width: 14px; height: 14px;"></i></span>
+                Pending Queue
+              </div>
+              <h2 class="page-title">Hospital Waiting List</h2>
+              <p class="page-subtitle">Track bottlenecked patients awaiting bed release or doctor availability</p>
+            </div>
+            <button class="btn-v0-primary" id="btnWaitingAllocate">
+              <i data-lucide="play" style="fill: currentColor;"></i>
+              Retry Allocation For All
+            </button>
+          </div>
+
+          <div class="data-panel">
+            <div class="data-panel-header">
+              <h4>Patients Awaiting Hospital Resources</h4>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient</th>
+                    <th>Emergency Level</th>
+                    <th>Priority</th>
+                    <th>Arrival Time</th>
+                    <th>Required Resources</th>
+                    <th>Clinical Reason / Bottleneck</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="waitingListTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==========================================
+             PAGE 6: ALLOCATION RESULTS (Treated & Active)
+             ========================================== -->
+        <section class="page-view" id="view-results">
+          
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon"><i data-lucide="file-bar-chart" style="width: 14px; height: 14px;"></i></span>
+                Active Care Units
+              </div>
+              <h2 class="page-title">Allocation Results</h2>
+              <p class="page-subtitle">Discharge treated patients to instantly release clinical resources back to admissions</p>
+            </div>
+          </div>
+
+          <div class="data-panel">
+            <h4>Currently Allocated Patients</h4>
+            <div style="overflow-x: auto; margin-top: 12px;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Patient ID & Name</th>
+                    <th>Assigned Bed</th>
+                    <th>Attending Doctor</th>
+                    <th>Equipment</th>
+                    <th>Allocated At</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="resultsAllocatedTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==========================================
+             PAGE 7: WHAT-IF SIMULATION (Scenario Planner)
+             ========================================== -->
+        <section class="page-view" id="view-simulation">
+          
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon"><i data-lucide="activity" style="width: 14px; height: 14px;"></i></span>
+                Scenario Testing
+              </div>
+              <h2 class="page-title">What-If Disaster Simulation</h2>
+              <p class="page-subtitle">Simulate resource outages or mass-casualty surges without mutating production clinical records</p>
+            </div>
+          </div>
+
+          <!-- Scenario Simulation Controls -->
+          <div class="v0-card" style="margin-bottom: 20px;">
+            <h3 class="v0-card-title">Configure Simulated Resource Outages</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px;">
+              <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-heading);">Disable Hospital Bed</label>
+                <select class="form-select" id="simSelectBed" style="width: 100%; margin-top: 4px;">
+                  <option value="">No beds disabled (Normal)</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-heading);">Take Doctor Offline</label>
+                <select class="form-select" id="simSelectDoctor" style="width: 100%; margin-top: 4px;">
+                  <option value="">All doctors active</option>
+                </select>
+              </div>
+              <div>
+                <label style="font-size: 12px; font-weight: 600; color: var(--text-heading);">Out-of-Service Equipment</label>
+                <select class="form-select" id="simSelectEquipment" style="width: 100%; margin-top: 4px;">
+                  <option value="">All equipment operational</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap;">
+              <button class="btn-v0-primary" id="btnRunSimulation">
+                <i data-lucide="play" style="fill: currentColor;"></i>
+                Run Simulation Scenario
+              </button>
+              <button class="btn-v0-secondary" id="btnPresetVentilatorShortage">
+                ⚡ Preset: Ventilator Outage
+              </button>
+              <button class="btn-v0-secondary" id="btnPresetICUBedShortage">
+                ⚡ Preset: Zero ICU Beds
+              </button>
+              <button class="btn-v0-secondary" id="btnResetSimulation">
+                Reset Scenarios
+              </button>
+            </div>
+          </div>
+
+          <!-- Simulation Comparison Results -->
+          <div class="data-panel">
+            <h4>Simulation Projected Impact</h4>
+            <div id="simulationResultsContainer" style="margin-top: 12px;">
+              <p style="color: var(--text-muted); font-size: 13px;">Select a resource disruption above to view real-time projected bottleneck impacts.</p>
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ==========================================
+             PAGE 8: ANALYTICS REPORTS (Comprehensive)
+             ========================================== -->
+        <section class="page-view" id="view-reports">
+          
+          <div class="page-header-row">
+            <div class="page-header-title-wrap">
+              <div class="badge-tag-overview">
+                <span class="badge-tag-icon"><i data-lucide="clipboard-list" style="width: 14px; height: 14px;"></i></span>
+                Analytics & Governance
+              </div>
+              <h2 class="page-title">Executive Clinical Reports</h2>
+              <p class="page-subtitle">Audit trails, triage bottleneck statistics, and resource utilization metrics</p>
+            </div>
+          </div>
+
+          <div class="analytics-grid" style="grid-template-columns: 1fr 1fr;">
+            
+            <div class="v0-card">
+              <h3 class="v0-card-title">Resource Utilization Rates</h3>
+              <p class="v0-card-subtitle" style="margin-bottom: 16px;">Current active demand vs installed hospital capacity</p>
+              
+              <div style="display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                    <span>Hospital Beds</span>
+                    <span id="reportBedRate">0%</span>
+                  </div>
+                  <div class="res-prog-track"><div class="res-prog-fill blue" id="barBedUsage" style="width: 0%;"></div></div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                    <span>Specialized Doctors</span>
+                    <span id="reportDoctorRate">0%</span>
+                  </div>
+                  <div class="res-prog-track"><div class="res-prog-fill cyan" id="barDoctorUsage" style="width: 0%;"></div></div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px;">
+                    <span>Medical Equipment</span>
+                    <span id="reportEquipmentRate">0%</span>
+                  </div>
+                  <div class="res-prog-track"><div class="res-prog-fill amber" id="barEquipmentUsage" style="width: 0%;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="v0-card">
+              <h3 class="v0-card-title">Clinical Insights & Demand</h3>
+              <p class="v0-card-subtitle" style="margin-bottom: 16px;">Greedy triage decision statistics</p>
+              
+              <div style="display: flex; flex-direction: column; gap: 12px; font-size: 13px;">
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted); font-weight: 600;">Most Requested Resource:</span>
+                  <span class="v0-badge badge-standard" id="reportMostRequestedResource">None</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted); font-weight: 600;">Most Common Emergency Level:</span>
+                  <span class="v0-badge badge-critical" id="reportMostCommonLevel">None</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted); font-weight: 600;">Critical Patient Coverage:</span>
+                  <strong id="reportCriticalFulfillment" style="color: var(--critical-red);">100%</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-muted); font-weight: 600;">Discharged / Treated:</span>
+                  <span class="v0-badge badge-normal" id="reportTreatedCount">0 Patients</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- App Footer (v0 Spec) -->
+      <footer class="app-footer">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-weight: 700; letter-spacing: 0.12em; color: var(--text-heading);">MEDIALLOC</span>
+          <span>•</span>
+          <span>Hospital Resource AI</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <span id="footerSyncTime">Last system sync: 09:14:00 AM</span>
+          <span style="display: flex; align-items: center; gap: 6px; color: var(--allocated-green); font-weight: 600;">
+            <i data-lucide="check-circle-2" style="width: 14px; height: 14px;"></i>
+            All services healthy
+          </span>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: ADD PATIENT
+       ========================================== -->
+  <div class="modal-overlay" id="modalAddPatient">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h4>
+          <i data-lucide="user-plus" style="width: 20px; height: 20px; color: var(--primary);"></i>
+          Admit New Patient
+        </h4>
+        <button class="modal-close-btn" data-close-modal="modalAddPatient">&times;</button>
+      </div>
+
+      <form id="formAddPatient" novalidate>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="inputPatientId">Patient ID <span style="color: var(--critical-red);">*</span></label>
+              <input type="text" id="inputPatientId" class="form-control" placeholder="e.g. P006" required>
+            </div>
+
+            <div class="form-group">
+              <label for="inputPatientName">Patient Full Name <span style="color: var(--critical-red);">*</span></label>
+              <input type="text" id="inputPatientName" class="form-control" placeholder="e.g. Anjali Rao" required>
+            </div>
+
+            <div class="form-group">
+              <label for="inputPatientAge">Age <span style="color: var(--critical-red);">*</span></label>
+              <input type="number" id="inputPatientAge" class="form-control" placeholder="1 - 120" min="1" max="120" required>
+            </div>
+
+            <div class="form-group">
+              <label for="selectEmergencyLevel">Emergency Level <span style="color: var(--critical-red);">*</span></label>
+              <select id="selectEmergencyLevel" class="form-select" required>
+                <option value="Critical">Critical (Priority Score = 4)</option>
+                <option value="Serious">Serious (Priority Score = 3)</option>
+                <option value="Moderate">Moderate (Priority Score = 2)</option>
+                <option value="Normal">Normal (Priority Score = 1)</option>
+              </select>
+              <span style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="hintEmergencyScore">Critical: Immediate life-saving triage (Score 4)</span>
+            </div>
+
+            <div class="form-group">
+              <label for="inputArrivalTime">Arrival Time <span style="color: var(--critical-red);">*</span></label>
+              <input type="time" id="inputArrivalTime" class="form-control" required value="09:00">
+            </div>
+
+            <div class="form-group">
+              <label for="selectBedType">Required Bed Type <span style="color: var(--critical-red);">*</span></label>
+              <select id="selectBedType" class="form-select" required>
+                <option value="ICU">ICU</option>
+                <option value="Emergency">Emergency</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="selectDoctorSpec">Doctor Specialization <span style="color: var(--critical-red);">*</span></label>
+              <select id="selectDoctorSpec" class="form-select" required>
+                <option value="Cardiologist">Cardiologist</option>
+                <option value="General Physician">General Physician</option>
+                <option value="Pulmonologist">Pulmonologist</option>
+                <option value="Neurologist">Neurologist</option>
+                <option value="Orthopedic">Orthopedic</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="selectEquipment">Required Medical Equipment <span style="color: var(--critical-red);">*</span></label>
+              <select id="selectEquipment" class="form-select" required>
+                <option value="Ventilator">Ventilator</option>
+                <option value="Monitor">Monitor</option>
+                <option value="Oxygen">Oxygen</option>
+                <option value="None">None</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-v0-secondary" data-close-modal="modalAddPatient">Cancel</button>
+          <button type="submit" class="btn-v0-primary" id="btnSubmitAddPatient">Admit & Save Patient</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: ADD RESOURCE
+       ========================================== -->
+  <div class="modal-overlay" id="modalAddResource">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h4>
+          <i data-lucide="plus-circle" style="width: 20px; height: 20px; color: var(--primary);"></i>
+          Add Hospital Resource
+        </h4>
+        <button class="modal-close-btn" data-close-modal="modalAddResource">&times;</button>
+      </div>
+
+      <form id="formAddResource" novalidate>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="selectResourceCategory">Resource Category <span style="color: var(--critical-red);">*</span></label>
+              <select id="selectResourceCategory" class="form-select" required>
+                <option value="bed">Hospital Bed</option>
+                <option value="doctor">Doctor</option>
+                <option value="equipment">Medical Equipment</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="inputResourceId">Resource ID <span style="color: var(--critical-red);">*</span></label>
+              <input type="text" id="inputResourceId" class="form-control" placeholder="e.g. B005 or D003" required>
+            </div>
+
+            <div class="form-group">
+              <label for="selectResourceSubtype" id="labelResourceSubtype">Bed Type <span style="color: var(--critical-red);">*</span></label>
+              <select id="selectResourceSubtype" class="form-select" required>
+                <option value="ICU">ICU</option>
+                <option value="Emergency">Emergency</option>
+                <option value="General">General</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="inputResourceName">Name / Description <span style="color: var(--critical-red);">*</span></label>
+              <input type="text" id="inputResourceName" class="form-control" placeholder="e.g. ICU Bed 2 or Dr. Priya" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-v0-secondary" data-close-modal="modalAddResource">Cancel</button>
+          <button type="submit" class="btn-v0-primary">Save Resource</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Main Application Controller -->
+  <script src="app.js"></script>
+
+  <!-- Lucide Icons Activation -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (window.lucide) {
+        window.lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
