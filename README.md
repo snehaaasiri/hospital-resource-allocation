@@ -1,158 +1,253 @@
-# 🏥 Hospital Resource Allocation — Greedy Algorithm Prototype
+# 🏥 MediAlloc — Hospital Resource AI & Management Platform
 
-A responsive, client-side web application designed to allocate scarce hospital resources (ICU/Emergency/General beds, specialized doctors, and critical medical equipment) to incoming patients strictly prioritized by emergency severity and arrival time using a **Greedy Algorithm**.
+A clinical decision support & hospital resource management system that automates the allocation of scarce hospital resources (ICU/Emergency/General beds, specialized doctors, and critical medical equipment) to incoming patients based on emergency triage priority using a **Greedy Algorithm**.
+
+Now upgraded with **SMS Notifications via Twilio** and **Automated Billing & Payments via Razorpay**.
 
 ---
 
 ## 🌟 Key Features
 
-1. **📊 Executive Clinical Dashboard**
-   - Live metrics: Total Patients, Critical Patients, Available Beds, Available Doctors, Available Equipment, Allocated Resources, and Waiting Patients.
-   - Interactive visual charts (Emergency Priority Breakdown and Resource Capacity Utilization).
-   - Live patient queue table with instant status indicators and quick-action buttons.
+1. **📊 Executive Clinical Command Dashboard (v0 Design)**
+   - 8 live metrics: Total Patients, Critical Patients, Available Beds, Available Doctors, Available Equipment, Allocated Patients, Waiting Patients, and Efficiency.
+   - Interactive SVG Emergency Priority Donut Chart & Resource Capacity bars.
+   - Live intake queue table with fast search, filtering, and instant action buttons.
 
-2. **👥 Patient Intake & Registry (Add Patient)**
-   - Form with input validation: Patient Name, Unique ID, Age (1–120), Emergency Level, Required Bed Type, Doctor Specialization, Equipment, and Arrival Timestamp.
+2. **👥 Patient Intake & Admission**
+   - Form fields: Name, Patient ID, Age (1–120), Emergency Level, Phone Number (for SMS), Required Bed, Doctor Specialization, Equipment, and Arrival Timestamp.
    - Dynamic Emergency Priority Scoring:
-     - **Critical** = 4 (Immediate life threat)
-     - **Serious** = 3 (Acute instability)
-     - **Moderate** = 2 (Urgent care)
+     - **Critical** = 4 (Immediate resuscitation / life-saving)
+     - **Serious** = 3 (Acute clinical instability)
+     - **Moderate** = 2 (Urgent attention)
      - **Normal** = 1 (Standard non-critical care)
-   - Real-time tie-breaker timestamps (FIFO within same emergency priority score).
+   - FIFO tie-breaker within identical priority scores.
 
-3. **🏥 Hospital Resource Management**
-   - Categorized tabs: **Hospital Beds** (ICU, Emergency, General), **Specialized Doctors** (Cardiologist, General Physician, Pulmonologist, Neurologist, Orthopedic), and **Medical Equipment** (Ventilators, Monitors, Oxygen).
-   - Track availability, active clinical assignments, manual offline/maintenance toggles, and resource addition.
+3. **🏥 Hospital Resource Inventory**
+   - Categorized tabs: **Beds** (ICU, Emergency, General), **Specialized Doctors** (Cardiologist, General Physician, Pulmonologist, Neurologist, Orthopedic), and **Equipment** (Ventilators, Monitors, Oxygen).
+   - Real-time availability toggles (online/offline maintenance) and capacity tracking.
 
-4. **⚡ Automatic Resource Allocation (Greedy Algorithm)**
-   - Click **“Allocate Resources”** to run the greedy allocation engine across all admitted patients.
-   - **Sorting Strategy**:
-     1. Primary Key: Priority Score in descending order (`4 > 3 > 2 > 1`).
-     2. Secondary Key: Earliest arrival timestamp (`FIFO` tie-breaker).
-   - **Atomic Resource Validation**: Validates that matching Bed Type, Doctor Specialization, and Medical Equipment are all available simultaneously before dispatching.
-   - If any resource is missing, the patient is marked as **Waiting** and the bottleneck resource is identified.
+4. **⚡ Greedy Allocation Engine**
+   - Sorts queue: Priority Score DESC (`4 > 3 > 2 > 1`), Arrival Time ASC (`FIFO`).
+   - Atomic evaluation: Requires matching Bed + Doctor + Equipment simultaneously.
+   - Detailed bottleneck explanations for waiting patients (e.g., *"Waiting: ICU Bed unavailable"*).
 
-5. **🔍 Explainable Allocation & Bottleneck Tracking**
-   - **Allocated Explanation**:  
-     *“Patient allocated because emergency priority is Critical and ICU bed, Cardiologist, and Ventilator are available.”*
-   - **Waiting Explanation**:  
-     *“Patient waiting because no General Physician is currently available.”*
+5. **📱 SMS Notifications (Twilio)**
+   - Notify waiting patients when matching resources become available.
+   - Notify allocated patients with arrival instructions.
+   - Dedicated **Notifications** page with delivery stats and history table.
+   - Dual mode: Real SMS via Twilio or graceful fallback to Demo Mode.
 
-6. **🧪 What-If Simulation Sandbox**
-   - Test hypothetical disruptions without altering live patient records:
-     - Remove 1 available Bed.
-     - Remove 1 Doctor.
-     - Mark 1 Equipment item as unavailable (e.g., Ventilator maintenance).
-   - One-click presets: *Ventilator Shortage*, *Zero ICU Beds*.
-   - Generates side-by-side comparison tables with delta counts (Allocated Before vs After, Waiting Before vs After, Critical Coverage %) and automated bottleneck diagnosis.
+6. **💳 Automated Billing & Payments (Razorpay)**
+   - Auto-generates itemized hospital bill as soon as an allocated patient is marked as **Treated**.
+   - Resource pricing rules (INR):
+     - ICU Bed: ₹2,000/day | Emergency Bed: ₹1,200/day | General Bed: ₹800/day
+     - Doctor Consultation: ₹500
+     - Ventilator: ₹1,500 | Monitor: ₹500 | Oxygen: ₹300
+   - Dedicated **Billing** page with revenue metrics, pending balance, and filters.
+   - Pay via Razorpay Checkout, Cash (Manual), or Demo Payment with instant invoice download.
 
-7. **📈 Operations & Analytics Reporting**
-   - KPI metrics: Total Patients, Allocated Patients, Waiting Patients, and Average Waiting Time (in minutes/hours).
-   - Resource utilization percentage bars for Beds, Doctors, and Equipment.
-   - Clinical insights: Most Requested Resource, Most Common Emergency Level, and Critical Care Fulfillment rate.
-   - Printable report view (`window.print()`).
+7. **🧪 What-If Simulation Sandbox**
+   - Stress-test hospital capacity under disruption scenarios without modifying active data.
+   - Side-by-side comparison tables, delta pills, and bottleneck diagnosis.
 
----
-
-## 🎨 Visual Design & Color Palette
-
-- **Critical**: `#dc2626` (Medical Red)
-- **Serious**: `#ea580c` (Emergency Orange)
-- **Moderate**: `#d97706` (Amber Yellow)
-- **Normal**: `#16a34a` (Clinical Green)
-- **Allocated**: `#0284c7` (Operational Blue)
-- **Waiting**: `#c2410c` / `#fef2f2` (Warning Rose/Orange)
-- **Treated / Discharged**: `#475569` (Slate Grey)
+8. **📈 Operations & Analytics Reporting**
+   - Live hospital operations metrics: Resource utilization percentages, average wait time, most requested resource, and critical fulfillment rate.
 
 ---
 
-## 📋 Default Pre-loaded Sample Data
+## 📱 Twilio SMS Integration
 
-### Patients
-| ID | Patient Name | Age | Emergency Level | Priority Score | Bed Required | Doctor Required | Equipment Required |
-|---|---|---|---|---|---|---|---|
-| **P001** | Rahul Sharma | 56 | **Critical** | 4 | ICU | Cardiologist | Ventilator |
-| **P002** | Ananya Rao | 34 | **Serious** | 3 | Emergency | General Physician | Monitor |
-| **P003** | Vikram Kumar | 22 | **Moderate** | 2 | General | General Physician | None |
-| **P004** | Meena Das | 45 | **Normal** | 1 | General | General Physician | None |
+### How to Create a Twilio Account & Get Credentials
+1. Sign up for a free trial at [https://www.twilio.com/try-twilio](https://www.twilio.com/try-twilio).
+2. Go to the [Twilio Console](https://console.twilio.com/).
+3. Locate your **Account SID** on the dashboard.
+4. Go to **Account > API Keys & Tokens** to create an API Key (or use your Auth Token):
+   - `TWILIO_API_KEY`
+   - `TWILIO_API_KEY_SECRET`
+5. Get a Twilio phone number under **Phone Numbers > Manage > Buy a number** (or use your trial number):
+   - `TWILIO_PHONE_NUMBER` (in E.164 format, e.g. `+1234567890`)
 
-### Resources
-- **ICU Bed 1**: Available
-- **Emergency Bed 1**: Available
-- **General Bed 1**: Available
-- **Cardiologist 1**: Available
-- **General Physician 1**: Available
-- **Ventilator 1**: Available
-- **Monitor 1**: Available
+### Where to Add Credentials
+1. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Populate the Twilio credentials:
+   ```env
+   TWILIO_ACCOUNT_SID=ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+   TWILIO_API_KEY=SKXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+   TWILIO_API_KEY_SECRET=your_api_key_secret_here
+   TWILIO_PHONE_NUMBER=+12015550123
+   ```
+3. Restart the server (`node server.js`).
+
+### How Demo Mode Works
+- If Twilio environment variables are omitted or blank, **the application never crashes**.
+- The server automatically switches to **Demo Mode**.
+- Outgoing SMS notifications are recorded with status `Demo` and message:  
+  *“Twilio is not configured. This is a demo notification.”*
+- The Notifications dashboard displays a live badge: `⚠️ Twilio: Demo Mode`.
+- You can test full user workflows, view notification history, and demonstrate the feature without entering API credentials.
 
 ---
 
-## 🚀 Step-by-Step Demo Walkthrough
+## 💳 Razorpay Billing Integration
 
-Follow this 10-step sequence to verify all system behaviors:
+### How to Create Razorpay Test Keys
+1. Create a free account at [https://dashboard.razorpay.com/](https://dashboard.razorpay.com/).
+2. Toggle the dashboard to **Test Mode** (top-right switch).
+3. Navigate to **Settings > API Keys**.
+4. Click **Generate Key** to receive:
+   - `Key ID` (starts with `rzp_test_...`)
+   - `Key Secret`
 
-1. **Open the Dashboard**:  
-   Notice 4 initial patients in queue, 3 available beds, 2 available doctors, 2 available equipment units. All patients start in *Waiting* state.
-2. **View Available Resources**:  
-   Click **Resources** in the sidebar. Confirm all sample resources are marked `Available`.
-3. **Inspect Sample Patients**:  
-   Click **Patients** in the sidebar to view P001–P004 with their corresponding emergency levels (Critical=4 to Normal=1).
-4. **Trigger Allocation**:  
-   Click the **“Allocate Resources”** button in the header or sidebar.
-5. **Verify Priority Allocation**:  
-   - **Rahul Sharma (P001, Critical, Score 4)** is allocated first with ICU Bed 1, Cardiologist 1, Ventilator 1.
-   - **Ananya Rao (P002, Serious, Score 3)** is allocated second with Emergency Bed 1, General Physician 1, Monitor 1.
-6. **Verify Waiting Queue & Explanations**:  
-   - **Vikram Kumar (P003, Moderate, Score 2)** remains **Waiting** with explanation:  
-     *“Patient waiting because no General Physician is currently available.”* (Doctor is occupied with P002).
-   - **Meena Das (P004, Normal, Score 1)** remains **Waiting** for the same reason.
-7. **Mark Patient as Treated**:  
-   On Ananya Rao (P002), click **“Mark as Treated”**.  
-   Her assigned resources (Emergency Bed 1, General Physician 1, Monitor 1) are immediately released back into the available pool.
-8. **Verify Freed Resources**:  
-   The dashboard counters for Available Beds and Available Doctors automatically increment.
-9. **Re-run Allocation**:  
-   Click **“Allocate Resources”** again.  
-   - **Vikram Kumar (P003, Moderate)** now receives General Bed 1 and the freed General Physician 1!
-   - **Meena Das (P004, Normal)** now waits for a General Bed (as General Bed 1 is occupied by Vikram).
-10. **Examine Reports & What-If Simulation**:  
-    - Navigate to **What-if Simulation**, simulate removing a Ventilator, and observe the immediate shortfall for Critical patients.
-    - Navigate to **Reports** to review resource utilization percentages, average wait time, and most requested equipment.
+### Where to Add Credentials
+In your backend `.env` file:
+```env
+RAZORPAY_KEY_ID=rzp_test_yourKeyIdHere
+RAZORPAY_KEY_SECRET=yourKeySecretHere
+```
+Restart the server (`node server.js`).
+
+### How Billing is Calculated
+When a patient is discharged by clicking **“Treat & Discharge”**:
+- Bed Charge:
+  - ICU: ₹2,000
+  - Emergency: ₹1,200
+  - General: ₹800
+- Doctor Consultation: ₹500
+- Equipment Charge:
+  - Ventilator: ₹1,500
+  - Monitor: ₹500
+  - Oxygen: ₹300
+  - None: ₹0
+- Total Amount = Bed Charge + Doctor Consultation + Equipment Charge.
+
+### How Payment Verification Works
+1. Staff clicks **“Pay”** on an open bill.
+2. The frontend requests an order from `POST /api/payments/create-order`.
+3. The server calls the Razorpay Orders API (`https://api.razorpay.com/v1/orders`) with the bill amount in paise (`totalAmount * 100`).
+4. Razorpay Checkout modal opens. Upon card/UPI authorization, Razorpay returns:
+   - `razorpay_order_id`
+   - `razorpay_payment_id`
+   - `razorpay_signature`
+5. The frontend submits these to `POST /api/payments/verify`.
+6. The backend verifies the HMAC SHA256 signature using `RAZORPAY_KEY_SECRET`:
+   ```js
+   const expected = crypto.createHmac('sha256', SECRET)
+     .update(`${orderId}|${paymentId}`)
+     .digest('hex');
+   ```
+7. Upon validation, the bill status transitions to **Paid**, stores the transaction ID, and records the timestamp.
+
+### How Demo Payment Mode Works
+- If Razorpay credentials are not provided, the UI automatically offers:
+  1. **Demo Payment**: Instantly marks the bill as Paid with a simulated transaction ID (`DEMO-...`).
+  2. **Cash (Manual)**: Records offline cash settlement with transaction ID (`CASH-...`).
+- The bill details modal allows immediate text invoice export (`BILL-XXXX-Invoice.txt`).
+
+---
+
+## 🔒 Security & Safe Secrets Management
+- All API secrets (`TWILIO_API_KEY_SECRET`, `RAZORPAY_KEY_SECRET`) are read **only** by the Node.js backend.
+- Secret keys are **never** bundled into the client-side JavaScript or sent in API responses.
+- `.env` is ignored via `.gitignore` to prevent leaking to Git.
+- An `.env.example` template provides dummy placeholder names.
+
+---
+
+## 🚀 Complete End-to-End Demo Flow (For Judges / Jury)
+
+Follow this 11-step sequence to demonstrate the complete MediAlloc workflow:
+
+1. **Admit a Patient with Phone Number**:
+   - Click **“Admit Patient”** in the header or dashboard.
+   - Enter Name (e.g., `Rajesh Kumar`), Age `54`, Level `Critical`, Bed `ICU`, Doctor `Cardiologist`, Equipment `Ventilator`.
+   - Enter Phone Number: `+91 98765 43210`.
+   - Click **“Admit Patient”**.
+
+2. **Verify Resource Status**:
+   - Go to **Resources** in the sidebar. Note current available counts for ICU Beds, Cardiologists, and Ventilators.
+
+3. **Run Greedy Allocation**:
+   - Click **“Run Greedy Allocation”** in the top header.
+   - Watch the allocation engine evaluate priorities. Patients with available resources turn **Allocated**; patients lacking resources turn **Waiting** with clear bottleneck reasons.
+
+4. **Send SMS to a Waiting Patient**:
+   - Navigate to **Waiting List** from the sidebar.
+   - On any waiting patient, click **“Notify”**.
+   - Notice the phone number and alert message are pre-filled.
+   - Click **“Send SMS”**. A toast confirms delivery (or demo notification logged).
+   - Go to the **Notifications** page to inspect the history entry.
+
+5. **Bulk Notify Waiting Queue**:
+   - On the **Notifications** page, click **“Notify All Waiting”**.
+   - Confirms and sends batch alerts to all patients in the waiting queue with valid phone numbers.
+
+6. **Treat & Discharge Patient**:
+   - Go to **Results** in the sidebar (or find an allocated patient in the Dashboard).
+   - Click **“Treat & Discharge”**.
+   - Notice two things happen simultaneously:
+     1. The patient's assigned bed, doctor, and equipment are immediately freed and returned to the hospital's available pool.
+     2. An itemized hospital bill is automatically generated. A toast appears with the Bill ID and total amount.
+
+7. **Review the Bill & Invoice**:
+   - Click **Billing** in the sidebar.
+   - Find the newly generated bill in the table with status `Pending`.
+   - Click **“View”** to open the professional hospital invoice modal displaying line-item charges for bed, doctor consultation, and equipment.
+   - Click **“Download Invoice”** to save a text invoice file.
+
+8. **Process Payment (Razorpay / Demo)**:
+   - Click **“Pay Now”** (or click **“Pay”** in the table).
+   - Select payment method:
+     - If Razorpay keys are configured: opens the real Razorpay modal.
+     - In Demo mode: click **“Demo Payment”** or **“Pay via Cash”**.
+   - A success toast confirms payment.
+
+9. **Verify Real-Time Financial Settlement**:
+   - The bill badge flips to **Paid** (green).
+   - Revenue Collected metric increases by the bill amount.
+   - Pending Amount automatically decreases.
+
+10. **Re-run Greedy Allocation with Freed Resources**:
+    - Click **“Run Greedy Allocation”** again.
+    - Previously waiting patients will now claim the newly freed bed and doctor!
+
+11. **Check Operational Reports**:
+    - Navigate to **Reports** to see updated bed occupancy rates, average waiting time, and discharge statistics.
 
 ---
 
 ## 💻 How to Run Locally
 
-Because the application is built entirely using vanilla **HTML5**, **CSS3**, and **JavaScript** with `localStorage`, no web server or backend installation is required.
-
-### Option 1: Direct Browser Launch
-1. Navigate to:
-   `C:\Users\asneh\.gemini\antigravity\scratch\hospital-resource-allocation`
-2. Double-click `index.html` to open it in Chrome, Edge, Firefox, or Safari.
-
-### Option 2: Local HTTP Server (Optional)
-If you prefer running via a local server:
+### Start the Server:
 ```bash
-# Using Node npx
-npx serve C:\Users\asneh\.gemini\antigravity\scratch\hospital-resource-allocation
-
-# Or using Python (if installed)
-cd C:\Users\asneh\.gemini\antigravity\scratch\hospital-resource-allocation
-python -m http.server 8080
+# In the project directory:
+node server.js
 ```
+The server will start on port `8080`:
+```
+🏥 MediAlloc Server running at http://localhost:8080/
+   Twilio SMS: ⚠️  Demo Mode (or ✅ Configured)
+   Razorpay:   ⚠️  Demo Mode (or ✅ Configured)
+```
+Open **[http://localhost:8080/](http://localhost:8080/)** in any modern web browser.
 
 ---
 
-## 📁 File Structure
+## 📁 Project Structure
 
 ```
 hospital-resource-allocation/
-├── index.html        # Semantic HTML5 single-page application shell with all views & modals
-├── styles.css        # Hospital design system, responsive grid, status badges, & animations
-├── app.js            # StorageManager, GreedyAllocationEngine, SimulationEngine, & UI Controller
-└── README.md         # Complete system documentation & demo instructions
+├── index.html        # Semantic HTML single-page command center with 10 view sections & modals
+├── styles.css        # Hospital design system, responsive layout, status badges, dark mode
+├── app.js            # StorageManager, GreedyAllocationEngine, Twilio/Razorpay client, UI controller
+├── server.js         # Node.js HTTP server & REST API (Twilio SMS & Razorpay payment endpoints)
+├── .env.example      # Environment variable template
+├── .gitignore        # Ignores .env and credentials
+└── README.md         # Comprehensive documentation & demo guide
 ```
 
 ---
 
-*Hospital Resource Allocation — Greedy Algorithm Prototype*
+*MediAlloc — Hospital Resource AI Platform*

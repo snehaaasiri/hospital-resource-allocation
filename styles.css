@@ -1841,3 +1841,417 @@ body {
     display: block;
   }
 }
+
+/* ==========================================================================
+   NOTIFICATIONS & BILLING — Feature Styles
+   ========================================================================== */
+
+/* Nav badge alert (pending bills) */
+.nav-badge.alert {
+  background: var(--critical-red) !important;
+  color: #fff !important;
+}
+
+/* Billing filter buttons active state */
+.billing-filter-btn {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.billing-filter-btn.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+/* Notification status badges inline */
+.notif-status-sent   { color: var(--allocated-green); font-weight: 700; }
+.notif-status-failed { color: var(--critical-red);    font-weight: 700; }
+.notif-status-demo   { color: var(--urgent-amber);    font-weight: 700; }
+
+/* Invoice / Bill modal content area */
+#billDetailsContent table thead tr th {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* Payment modal summary block */
+#paymentBillSummary {
+  background: var(--primary-light);
+  border: 1px solid #c7d9eb;
+  border-radius: 10px;
+  padding: 16px;
+}
+
+/* btn-tbl-allocate variant for View in billing table */
+.btn-tbl-allocate {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+  transition: background var(--transition-fast);
+  white-space: nowrap;
+}
+.btn-tbl-allocate:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* ==========================================================================
+   OFFICIAL HOSPITAL INDIVIDUAL PATIENT MEDICAL REPORT (PDF & PRINT STYLES)
+   ========================================================================== */
+
+.hospital-report-sheet {
+  background: #ffffff !important;
+  color: #1e293b !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 36px 42px;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: relative;
+  box-sizing: border-box;
+}
+
+.report-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 2px solid #1e3a8a;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+}
+
+.report-hospital-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.report-hospital-logo {
+  width: 52px;
+  height: 52px;
+  background: #1e3a8a;
+  color: #ffffff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: 800;
+  box-shadow: 0 3px 8px rgba(30, 58, 138, 0.3);
+}
+
+.report-hospital-info h2 {
+  font-size: 20px;
+  font-weight: 800;
+  color: #1e3a8a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.report-hospital-info p {
+  font-size: 11px;
+  color: #64748b;
+  margin: 2px 0 0 0;
+  line-height: 1.4;
+}
+
+.report-accreditation {
+  text-align: right;
+  font-size: 11px;
+  color: #64748b;
+}
+
+.report-accreditation .badge-nabh {
+  display: inline-block;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  font-weight: 700;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-bottom: 4px;
+}
+
+.report-title-banner {
+  background: #f1f5f9;
+  border-left: 4px solid #1e3a8a;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.report-title-banner h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.report-barcode {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #334155;
+  font-weight: 700;
+}
+
+/* Patient Demographic Grid */
+.report-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 14px;
+  margin-bottom: 18px;
+}
+
+.report-info-cell {
+  font-size: 11px;
+}
+
+.report-info-cell .label {
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  margin-bottom: 3px;
+}
+
+.report-info-cell .value {
+  color: #0f172a;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+/* Clinical Triage & Vitals Strip */
+.report-vitals-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.report-vital-box {
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  background: #ffffff;
+  border-top: 3px solid #3b82f6;
+}
+
+.report-vital-box.critical-triage {
+  border-top-color: #ef4444;
+  background: #fff5f5;
+}
+
+.report-vital-box.urgent-triage {
+  border-top-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.report-vital-box.standard-triage {
+  border-top-color: #10b981;
+  background: #f0fdf4;
+}
+
+.report-vital-label {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.report-vital-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-top: 3px;
+}
+
+/* Sections */
+.report-section {
+  margin-bottom: 18px;
+}
+
+.report-section-heading {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1e3a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 4px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Clinical Allocation Table */
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+  margin-bottom: 10px;
+}
+
+.report-table th {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 700;
+  text-align: left;
+  padding: 8px 10px;
+  border: 1px solid #cbd5e1;
+  font-size: 10.5px;
+  text-transform: uppercase;
+}
+
+.report-table td {
+  padding: 8px 10px;
+  border: 1px solid #e2e8f0;
+  color: #334155;
+}
+
+.report-table tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+/* Greedy AI Rationale Card */
+.report-ai-rationale {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-left: 4px solid #2563eb;
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  color: #1e40af;
+  line-height: 1.5;
+  margin-bottom: 18px;
+}
+
+/* Signatures & Hospital Seal Block */
+.report-signatures-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.report-signature-box {
+  text-align: center;
+  width: 200px;
+}
+
+.report-signature-line {
+  border-top: 1px dashed #64748b;
+  margin-top: 36px;
+  margin-bottom: 6px;
+}
+
+.report-signature-name {
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.report-signature-title {
+  font-size: 9.5px;
+  color: #64748b;
+}
+
+.report-hospital-seal {
+  width: 90px;
+  height: 90px;
+  border: 2px dashed #dc2626;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #dc2626;
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transform: rotate(-10deg);
+  opacity: 0.85;
+}
+
+.report-footer-legal {
+  margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 9px;
+  color: #94a3b8;
+  display: flex;
+  justify-content: space-between;
+  line-height: 1.4;
+}
+
+/* Print Overrides */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .modal-overlay#modalPatientReport,
+  .modal-overlay#modalPatientReport * {
+    visibility: visible;
+  }
+  .modal-overlay#modalPatientReport {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .modal-overlay#modalPatientReport .modal-card {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  .modal-overlay#modalPatientReport .modal-header,
+  .modal-overlay#modalPatientReport .modal-footer {
+    display: none !important;
+  }
+  .modal-overlay#modalPatientReport .modal-body {
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+  .hospital-report-sheet {
+    box-shadow: none !important;
+    padding: 20px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
